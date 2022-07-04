@@ -29,7 +29,7 @@ class RangeResponseProcessor(val n: Long, val s: Long) {
   protected val heightCounts = TreeMap[Long, Long]()
   heightCounts(0) = 0
   
-  def ProcessRange(start: Long, count: Long): Unit = {
+  def ProcessRange(start: Long, count: Long): Unit = synchronized {
     val h = heightCounts.firstKey
     if (start >= h + s || count <= 0) return
     val correctedStart = math.max(start, h)
@@ -89,19 +89,20 @@ class RangeResponseProcessor(val n: Long, val s: Long) {
     }
   }
   
-  def GetActiveRange() = {
+  def GetActiveRange() = synchronized {
     val h = heightCounts.firstKey
     (h, h + s-1)
   }
   
   // We can notice that ProcessRange does not depend on the content of blocks, only on their count,
   // according to the problem definition.
-  def ProcessRange(start: Long, blocks: Iterable[Block]): Unit = {
+  def ProcessRange(start: Long, blocks: Iterable[Block]): Unit = synchronized {
     ProcessRange(start, blocks.size)
   }
 }
 
 // Let me keep it simple and not involve any testing framework, for the sake of code compactness.
+// I did not use any synchronization here, assuming that testing will not be multi-threaded.
 class RangeResponseProcessorTester(override val n: Long, override val s: Long)
   extends RangeResponseProcessor(n, s) {
   def AssertInvariants(): Unit = {
